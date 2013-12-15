@@ -1,5 +1,8 @@
 package navalwar.server.network;
 
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.HashMap;
 
 import navalwar.server.gameengine.GameEngineModule;
@@ -10,18 +13,20 @@ public class ServerNetworkModule implements IServerNetworkModule {
 
 	
 	IGameEngineModule game = null;
-	
+	ServerSocket ws;
 	
 	//--------------------------------------------
 	// Constructors & singleton pattern
 	//--------------------------------------------
 
-	private ServerNetworkModule() {
+	private ServerNetworkModule() throws IOException {
 		// TODO complete module contructor
+		ws = new ServerSocket(6789);
+		
 	}
 	
 	private static ServerNetworkModule instance = null;
-	public static ServerNetworkModule getInstance() {
+	public static ServerNetworkModule getInstance() throws IOException {
 		if (instance == null) instance = new ServerNetworkModule();
 		return instance;
 	}
@@ -59,6 +64,14 @@ public class ServerNetworkModule implements IServerNetworkModule {
 		return 0;
 	}
 
+	public void receiveConnections() throws IOException{
+		while(true){
+			Socket connectionSocket = ws.accept();
+			NetworkRequest newConnection = new NetworkRequest(connectionSocket,game);
+			Thread thread = new Thread(newConnection);
+			thread.start();
+		}
+	}
 
 
 }
