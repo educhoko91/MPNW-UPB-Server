@@ -17,10 +17,14 @@ import navalwar.server.gameengine.info.WarInfo;
 public class NetworkRequest implements Runnable,IServerNetworkModule {
 	IGameEngineModule game;
 	Socket s;
+	DataOutputStream outToClient;
+	BufferedReader br;
 	
-	public NetworkRequest (Socket s,IGameEngineModule game){
+	public NetworkRequest (Socket s,IGameEngineModule game) throws IOException{
 		this.s = s;
 		this.game = game;
+		outToClient = new DataOutputStream(this.s.getOutputStream());
+		br = new BufferedReader(new InputStreamReader(this.s.getInputStream())); 
 	}
 	
 	@Override
@@ -37,15 +41,13 @@ public class NetworkRequest implements Runnable,IServerNetworkModule {
 			}
 			
 		}
+		System.out.println("Cerrando thread");
 		
 	}
 	
 	private void listener() throws IOException{
 		while(true){
 			String inputLine;
-			InputStreamReader is = new InputStreamReader(this.s.getInputStream());
-			BufferedReader br = new BufferedReader(is);
-			
 			inputLine = br.readLine();
 			StringTokenizer tokenizer = new StringTokenizer(inputLine);
 			String request= tokenizer.nextToken();
@@ -56,7 +58,7 @@ public class NetworkRequest implements Runnable,IServerNetworkModule {
 					handleWarListMsg();
 					break;
 				case "CreateWarMsg":
-					creatingWar(br);
+					creatingWar();
 					break;
 				case "StartMsg":
 					System.out.println("game.startWar(warID)");
@@ -71,7 +73,7 @@ public class NetworkRequest implements Runnable,IServerNetworkModule {
 					System.out.println("game.ExitArmy(armyID,warID)");
 					break;
 				case "JOIN":
-					System.out.println("game.JOIN(warID)");
+					handleJoin();
 					break;
 				default :
 					break;
@@ -80,25 +82,32 @@ public class NetworkRequest implements Runnable,IServerNetworkModule {
 		}
 	}
 	
-	private void creatingWar(BufferedReader br) throws IOException{
+	private void creatingWar() throws IOException{
 		String warNameMsg,warDescMsg,warName,warDesc;
 		warNameMsg = br.readLine();
 		warDescMsg = br.readLine();
 		StringTokenizer nameTokenizer = new StringTokenizer(warNameMsg);
 		StringTokenizer descTokenizer = new StringTokenizer(warDescMsg);
 		nameTokenizer.nextToken(":");
-		warName = nameTokenizer.nextToken();
+		warName="";
+		while(nameTokenizer.hasMoreTokens())
+			warName += nameTokenizer.nextToken();
 		descTokenizer.nextToken(":");
-		warDesc = descTokenizer.nextToken();
+		warDesc="";
+		while(descTokenizer.hasMoreTokens())
+			warDesc += descTokenizer.nextToken();
 		System.out.println("warName = "+ warName);
 		System.out.println("warDescription = "+ warDesc);
-		game.createWar(warName, warDesc);
+		int warID = game.createWar(warName, warDesc);
+		String WarIDMsg = "WarIDMsg"+'\n';
+		outToClient.writeBytes(WarIDMsg);
+		String response = ""+warID+'\n';
+		outToClient.writeBytes(response);
 	}
 
 	private void handleWarListMsg() throws IOException{
 		List<Integer> warIDs = game.getWarsList();
 		List<IWarInfo> wars = new ArrayList<IWarInfo>();
-		DataOutputStream outToClient = new DataOutputStream(s.getOutputStream());
 		String header ="GamesMsg"+'\n';
 		outToClient.writeBytes(header);
 		String numberOfWars = ""+ warIDs.size() + '\n';
@@ -106,11 +115,17 @@ public class NetworkRequest implements Runnable,IServerNetworkModule {
 		System.out.println("mando header");
 		for(Integer i : warIDs){
 			IWarInfo info = game.getWarInfo(i);
-			String register = info.getWarID()+";"+info.getName()+";"+info.getDesc()+";"+info.getNumArmies()+'\n';
-			outToClient.writeBytes(register);
+			String warID="warID:"+info.getWarID()+'\n';
+			String warName="warName:"+info.getName()+'\n';
+			outToClient.writeBytes(warID);
+			outToClient.writeBytes(warName);
 		}
 		System.out.println("termino de mandar lista");
 		
+	}
+	
+	private void handleJoin(){
+		String WarIDMsg,ArmyNameMsg,UnitsMsg,RowsMsg,ColsMsg;
 	}
 	
 	@Override
