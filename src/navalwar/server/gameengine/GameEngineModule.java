@@ -80,14 +80,14 @@ public class GameEngineModule implements IGameEngineModule {
 		return list;
 	}
 
-	public synchronized int regArmy(int warID, String name, String[] units, int[] rows, int[] cols) throws WarDoesNotExistException, WarAlreadyFinishedException, WarAlreadyStartedException, InvalidUnitNameException, PlaceNotFreeToPlaceUnitException, UnitCoordinatesOutsideMatrixException {
+	public synchronized int regArmy(int warID, String name, List<UnitObject> units) throws WarDoesNotExistException, WarAlreadyFinishedException, WarAlreadyStartedException, InvalidUnitNameException, PlaceNotFreeToPlaceUnitException, UnitCoordinatesOutsideMatrixException {
 		// check if war exists
 		if (!wars.containsKey(warID)) throw new WarDoesNotExistException(warID);
 
 		War war = wars.get(warID);
 
 		// register army
-		int armyID = war.regArmy(name, units, rows, cols);
+		int armyID = war.regArmy(name, units);
 		return armyID;
 	}
 

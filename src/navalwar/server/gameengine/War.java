@@ -85,18 +85,18 @@ public class War {
 		this.warID = warID;
 	}
 
-	public int regArmy(String name, String[] units, int[] rows, int[] cols) throws WarAlreadyFinishedException, WarAlreadyStartedException, InvalidUnitNameException, PlaceNotFreeToPlaceUnitException, UnitCoordinatesOutsideMatrixException {
+	public int regArmy(String name, List<UnitObject> units) throws WarAlreadyFinishedException, WarAlreadyStartedException, InvalidUnitNameException, PlaceNotFreeToPlaceUnitException, UnitCoordinatesOutsideMatrixException {
 		if (status == Status.FIGHTING) throw new WarAlreadyStartedException(warID);
 		if (status == Status.FINISHED) throw new WarAlreadyFinishedException(warID);
 		
 		Army field = new Army(name);
-		int numUnits = units.length;
 		
-		for (int i = 0; i < numUnits; i++) {
+		
+		for (UnitObject unit : units) {
 
-			String unitName = units[i];
-			int unitRow = rows[i];
-			int unitCol = cols[i];
+			String unitName = unit.getName();
+			int unitRow = unit.getX();
+			int unitCol = unit.getY();
 			
 			Unit u = null;
 			if (unitName.compareToIgnoreCase("Soldier") == 0) {
