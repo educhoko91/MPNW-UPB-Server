@@ -151,7 +151,7 @@ public class NetworkRequest implements Runnable{
 		///////////////////////////////////////////////
 	}
 	
-	private void handleJoin() throws IOException, WarDoesNotExistException, WarAlreadyFinishedException, WarAlreadyStartedException, InvalidUnitNameException, PlaceNotFreeToPlaceUnitException, UnitCoordinatesOutsideMatrixException{
+	private void handleJoin() throws IOException{
 		String WarIDMsg,ArmyNameMsg,SizeMsg;
 		List<UnitAndPlace> units = new ArrayList<UnitAndPlace>();
 		WarIDMsg = br.readLine();
@@ -194,9 +194,37 @@ public class NetworkRequest implements Runnable{
 			System.out.println("Y: " + y);
 			/////////////////////////////////////////////////////
 		}
-		int armyID = game.regArmy(warID, armyName, units);
-		outToClient.writeBytes("ArmyIDMsg"+'\n');
-		outToClient.writeBytes("armyID:"+armyID+'\n');
+		int armyID;
+		try {
+			armyID = game.regArmy(warID, armyName, units);
+			outToClient.writeBytes("ArmyIDMsg"+'\n');
+			outToClient.writeBytes("armyID:"+armyID+'\n');
+		} catch (WarDoesNotExistException e) {
+			outToClient.writeBytes("JOINERROR"+'n');
+			outToClient.writeBytes("Code:-103"+'n');
+			//e.printStackTrace();
+		} catch (WarAlreadyFinishedException e) {
+			outToClient.writeBytes("JOINERROR"+'n');
+			outToClient.writeBytes("Code:-103"+'n');
+			//e.printStackTrace();
+		} catch (WarAlreadyStartedException e) {
+			outToClient.writeBytes("JOINERROR"+'n');
+			outToClient.writeBytes("Code:-103"+'n');
+			//e.printStackTrace();
+		} catch (InvalidUnitNameException e) {
+			outToClient.writeBytes("JOINERROR"+'n');
+			outToClient.writeBytes("Code:-103"+'n');
+			//e.printStackTrace();
+		} catch (PlaceNotFreeToPlaceUnitException e) {
+			outToClient.writeBytes("JOINERROR"+'n');
+			outToClient.writeBytes("Code:-103"+'n');
+			//e.printStackTrace();
+		} catch (UnitCoordinatesOutsideMatrixException e) {
+			outToClient.writeBytes("JOINERROR"+'n');
+			outToClient.writeBytes("Code:-103"+'n');
+			//e.printStackTrace();
+		}
+		
 	}
 	
 	private void handleStart() throws IOException{
@@ -212,12 +240,18 @@ public class NetworkRequest implements Runnable{
 			game.startWar(warID);
 		} catch (WarDoesNotExistException e) {
 			System.out.println("inicindo una guerra que no existe");
+			outToClient.writeBytes("STARTERROR"+'n');
+			outToClient.writeBytes("Code:-101"+'n');
 			e.printStackTrace();
 		} catch (WarAlreadyStartedException e) {
 			System.out.println("la guerra ya ha sido iniciada");
+			outToClient.writeBytes("STARTERROR"+'n');
+			outToClient.writeBytes("Code:-101"+'n');
 			e.printStackTrace();
 		} catch (WarAlreadyFinishedException e) {
 			System.out.println("la guerra ya ha terminado");
+			outToClient.writeBytes("STARTERROR"+'n');
+			outToClient.writeBytes("Code:-101"+'n');
 			e.printStackTrace();
 		}
 	}
