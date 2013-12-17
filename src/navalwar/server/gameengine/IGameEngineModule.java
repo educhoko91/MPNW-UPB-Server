@@ -120,7 +120,7 @@ public interface IGameEngineModule {
 	 * @throws PlaceNotFreeToPlaceUnitException 
 	 * @throws UnitCoordinatesOutsideMatrixException 
 	 */
-	public int regArmy(int warID, String name, List<UnitObject> units)
+	public int regArmy(int warID, String name, List<UnitAndPlace> units)
 			throws WarDoesNotExistException, WarAlreadyFinishedException, WarAlreadyStartedException,
 			InvalidUnitNameException, PlaceNotFreeToPlaceUnitException, UnitCoordinatesOutsideMatrixException;
 	

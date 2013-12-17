@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 import navalwar.server.gameengine.IGameEngineModule;
-import navalwar.server.gameengine.UnitObject;
+import navalwar.server.gameengine.UnitAndPlace;
 import navalwar.server.gameengine.exceptions.InvalidUnitNameException;
 import navalwar.server.gameengine.exceptions.PlaceNotFreeToPlaceUnitException;
 import navalwar.server.gameengine.exceptions.UnitCoordinatesOutsideMatrixException;
@@ -146,7 +146,7 @@ public class NetworkRequest implements Runnable,IServerNetworkModule {
 	
 	private void handleJoin() throws IOException, WarDoesNotExistException, WarAlreadyFinishedException, WarAlreadyStartedException, InvalidUnitNameException, PlaceNotFreeToPlaceUnitException, UnitCoordinatesOutsideMatrixException{
 		String WarIDMsg,ArmyNameMsg,SizeMsg;
-		List<UnitObject> units = new ArrayList<UnitObject>();
+		List<UnitAndPlace> units = new ArrayList<UnitAndPlace>();
 		WarIDMsg = br.readLine();
 		ArmyNameMsg = br.readLine();
 		SizeMsg = br.readLine();
@@ -180,7 +180,7 @@ public class NetworkRequest implements Runnable,IServerNetworkModule {
 			x = Integer.parseInt(XTokenizer.nextToken());
 			YTokenizer.nextToken(":");
 			y = Integer.parseInt(YTokenizer.nextToken());
-			units.add(new UnitObject(unitName, x, y));
+			units.add(new UnitAndPlace(unitName, x, y));
 			///////////////////////////////////////////////////
 			System.out.println("Unit: "+unitName);
 			System.out.println("X: " + x);
