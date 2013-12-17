@@ -11,6 +11,13 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 import navalwar.server.gameengine.IGameEngineModule;
+import navalwar.server.gameengine.UnitObject;
+import navalwar.server.gameengine.exceptions.InvalidUnitNameException;
+import navalwar.server.gameengine.exceptions.PlaceNotFreeToPlaceUnitException;
+import navalwar.server.gameengine.exceptions.UnitCoordinatesOutsideMatrixException;
+import navalwar.server.gameengine.exceptions.WarAlreadyFinishedException;
+import navalwar.server.gameengine.exceptions.WarAlreadyStartedException;
+import navalwar.server.gameengine.exceptions.WarDoesNotExistException;
 import navalwar.server.gameengine.info.IWarInfo;
 import navalwar.server.gameengine.info.WarInfo;
 
@@ -45,14 +52,17 @@ public class NetworkRequest implements Runnable,IServerNetworkModule {
 		
 	}
 	
-	private void listener() throws IOException{
-		while(true){
+	private void listener() throws IOException, WarDoesNotExistException, WarAlreadyFinishedException, WarAlreadyStartedException, InvalidUnitNameException, PlaceNotFreeToPlaceUnitException, UnitCoordinatesOutsideMatrixException{
+		boolean alive = true;
+		while(alive){
 			String inputLine;
 			inputLine = br.readLine();
 			StringTokenizer tokenizer = new StringTokenizer(inputLine);
 			String request= tokenizer.nextToken();
+			/////////////////////////////////////////////////////////
 			System.out.println("LLamado por: " + s.getInetAddress());
 			System.out.println("Mensaje : "+ inputLine);
+			/////////////////////////////////////////////////////////
 			switch(request){
 				case "ListMsg" :
 					handleWarListMsg();
@@ -75,6 +85,12 @@ public class NetworkRequest implements Runnable,IServerNetworkModule {
 				case "JOIN":
 					handleJoin();
 					break;
+				case "DISCONNECT":
+					br.close();
+					outToClient.close();
+					s.close();
+					alive = false;
+					break;
 				default :
 					break;
 			}
@@ -96,8 +112,10 @@ public class NetworkRequest implements Runnable,IServerNetworkModule {
 		warDesc="";
 		while(descTokenizer.hasMoreTokens())
 			warDesc += descTokenizer.nextToken();
+		//////////////////////////////////////////////////
 		System.out.println("warName = "+ warName);
 		System.out.println("warDescription = "+ warDesc);
+		//////////////////////////////////////////////////
 		int warID = game.createWar(warName, warDesc);
 		String WarIDMsg = "WarIDMsg"+'\n';
 		outToClient.writeBytes(WarIDMsg);
@@ -107,12 +125,13 @@ public class NetworkRequest implements Runnable,IServerNetworkModule {
 
 	private void handleWarListMsg() throws IOException{
 		List<Integer> warIDs = game.getWarsList();
-		List<IWarInfo> wars = new ArrayList<IWarInfo>();
 		String header ="GamesMsg"+'\n';
 		outToClient.writeBytes(header);
 		String numberOfWars = ""+ warIDs.size() + '\n';
 		outToClient.writeBytes(numberOfWars);
+		///////////////////////////////////
 		System.out.println("mando header");
+		///////////////////////////////////
 		for(Integer i : warIDs){
 			IWarInfo info = game.getWarInfo(i);
 			String warID="warID:"+info.getWarID()+'\n';
@@ -120,12 +139,57 @@ public class NetworkRequest implements Runnable,IServerNetworkModule {
 			outToClient.writeBytes(warID);
 			outToClient.writeBytes(warName);
 		}
+		///////////////////////////////////////////////
 		System.out.println("termino de mandar lista");
-		
+		///////////////////////////////////////////////
 	}
 	
-	private void handleJoin(){
-		String WarIDMsg,ArmyNameMsg,UnitsMsg,RowsMsg,ColsMsg;
+	private void handleJoin() throws IOException, WarDoesNotExistException, WarAlreadyFinishedException, WarAlreadyStartedException, InvalidUnitNameException, PlaceNotFreeToPlaceUnitException, UnitCoordinatesOutsideMatrixException{
+		String WarIDMsg,ArmyNameMsg,SizeMsg;
+		List<UnitObject> units = new ArrayList<UnitObject>();
+		WarIDMsg = br.readLine();
+		ArmyNameMsg = br.readLine();
+		SizeMsg = br.readLine();
+		StringTokenizer warIDTokenizer = new StringTokenizer(WarIDMsg);
+		StringTokenizer armyNameTokenizer = new StringTokenizer(ArmyNameMsg);
+		StringTokenizer SizeTokenizer = new StringTokenizer(SizeMsg);
+		warIDTokenizer.nextToken(":");
+		int warID = Integer.parseInt(warIDTokenizer.nextToken());
+		armyNameTokenizer.nextToken(":");
+		String armyName = armyNameTokenizer.nextToken();
+		SizeTokenizer.nextToken(":");
+		//////////////////////////////////////////////////////
+		System.out.println("WarID: "+warID);
+		System.out.println("War: "+ game.getWarInfo(warID).getName());
+		System.out.println("ArmyName: "+ armyName);
+		System.out.println("Units:");
+		//////////////////////////////////////////////////////
+		int size = Integer.parseInt(SizeTokenizer.nextToken());
+		for(int i=0 ; i<size ;i++){
+			String unitName,UnitMsg,XMsg,YMsg;
+			int x,y; 
+			UnitMsg = br.readLine();
+			XMsg = br.readLine();
+			YMsg = br.readLine();
+			StringTokenizer unitTokenizer = new StringTokenizer(UnitMsg);
+			StringTokenizer XTokenizer = new StringTokenizer(XMsg);
+			StringTokenizer YTokenizer = new StringTokenizer(YMsg);
+			unitTokenizer.nextToken(":");
+			unitName = unitTokenizer.nextToken();
+			XTokenizer.nextToken(":");
+			x = Integer.parseInt(unitTokenizer.nextToken());
+			YTokenizer.nextToken(":");
+			y = Integer.parseInt(YTokenizer.nextToken());
+			units.add(new UnitObject(unitName, x, y));
+			///////////////////////////////////////////////////
+			System.out.println("Unit: "+unitName);
+			System.out.println("X: " + x);
+			System.out.println("Y: " + y);
+			/////////////////////////////////////////////////////
+		}
+		int armyID = game.regArmy(warID, armyName, units);
+		outToClient.writeBytes("ArmyIDMsg"+'\n');
+		outToClient.writeBytes("armyID:"+armyID+'\n');
 	}
 	
 	@Override
