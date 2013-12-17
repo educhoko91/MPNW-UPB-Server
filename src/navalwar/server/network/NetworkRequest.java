@@ -21,11 +21,11 @@ import navalwar.server.gameengine.exceptions.WarDoesNotExistException;
 import navalwar.server.gameengine.info.IWarInfo;
 import navalwar.server.gameengine.info.WarInfo;
 
-public class NetworkRequest implements Runnable,IServerNetworkModule {
-	IGameEngineModule game;
-	Socket s;
-	DataOutputStream outToClient;
-	BufferedReader br;
+public class NetworkRequest implements Runnable{
+	private IGameEngineModule game;
+	private Socket s;
+	private DataOutputStream outToClient;
+	private BufferedReader br;
 	
 	public NetworkRequest (Socket s,IGameEngineModule game) throws IOException{
 		this.s = s;
@@ -71,7 +71,7 @@ public class NetworkRequest implements Runnable,IServerNetworkModule {
 					creatingWar();
 					break;
 				case "StartMsg":
-					System.out.println("game.startWar(warID)");
+					handleStart();
 					break;
 				case "MovementMsg":
 					System.out.println("game.handleShot()");
@@ -116,11 +116,18 @@ public class NetworkRequest implements Runnable,IServerNetworkModule {
 		System.out.println("warName = "+ warName);
 		System.out.println("warDescription = "+ warDesc);
 		//////////////////////////////////////////////////
-		int warID = game.createWar(warName, warDesc);
-		String WarIDMsg = "WarIDMsg"+'\n';
-		outToClient.writeBytes(WarIDMsg);
-		String response = ""+warID+'\n';
-		outToClient.writeBytes(response);
+		if(warName.isEmpty()){
+			System.out.println("Nombre null en la partida, fallo al crear");
+			outToClient.writeBytes("CREATINGERROR"+'n');
+			outToClient.writeBytes("Code:-100"+'n');
+		}
+		else{
+			int warID = game.createWar(warName, warDesc);
+			String WarIDMsg = "WarIDMsg"+'\n';
+			outToClient.writeBytes(WarIDMsg);
+			String response = ""+warID+'\n';
+			outToClient.writeBytes(response);
+		}
 	}
 
 	private void handleWarListMsg() throws IOException{
@@ -192,40 +199,29 @@ public class NetworkRequest implements Runnable,IServerNetworkModule {
 		outToClient.writeBytes("armyID:"+armyID+'\n');
 	}
 	
-	@Override
-	public void bindGameEngineModule(IGameEngineModule game) {
-		// TODO Auto-generated method stub
-		
+	private void handleStart() throws IOException{
+		String warIDMsg,armyIDMsg;
+		warIDMsg = br.readLine();
+		armyIDMsg = br.readLine();
+		StringTokenizer warIDTokenizer = new StringTokenizer(warIDMsg);
+		StringTokenizer armyIDTokenizer = new StringTokenizer(armyIDMsg);
+		warIDTokenizer.nextToken(":");
+		int warID = Integer.parseInt(warIDTokenizer.nextToken());
+		int armyID = Integer.parseInt(armyIDTokenizer.nextToken());
+		try {
+			game.startWar(warID);
+		} catch (WarDoesNotExistException e) {
+			System.out.println("inicindo una guerra que no existe");
+			e.printStackTrace();
+		} catch (WarAlreadyStartedException e) {
+			System.out.println("la guerra ya ha sido iniciada");
+			e.printStackTrace();
+		} catch (WarAlreadyFinishedException e) {
+			System.out.println("la guerra ya ha terminado");
+			e.printStackTrace();
+		}
 	}
+	
 
-	@Override
-	public int startWar(int warID) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public int turnArmy(int warID, int armyID) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public int turnArmyTimeout(int warID, int armyID) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public int armyKicked(int warID, int armyID) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public int endWar(int warID, int winnerArmyID) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
 
 }
