@@ -177,7 +177,7 @@ public class NetworkRequest implements Runnable,IServerNetworkModule {
 			unitTokenizer.nextToken(":");
 			unitName = unitTokenizer.nextToken();
 			XTokenizer.nextToken(":");
-			x = Integer.parseInt(unitTokenizer.nextToken());
+			x = Integer.parseInt(XTokenizer.nextToken());
 			YTokenizer.nextToken(":");
 			y = Integer.parseInt(YTokenizer.nextToken());
 			units.add(new UnitObject(unitName, x, y));
