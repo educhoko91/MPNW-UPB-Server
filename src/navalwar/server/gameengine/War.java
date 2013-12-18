@@ -94,7 +94,7 @@ public class War {
 		
 		for (UnitAndPlace unit : units) {
 
-			String unitName = unit.getName();
+			String unitName = unit.getUnitName();
 			int unitRow = unit.getRow();
 			int unitCol = unit.getCol();
 			
