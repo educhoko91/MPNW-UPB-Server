@@ -18,6 +18,7 @@ import navalwar.server.gameengine.exceptions.UnitCoordinatesOutsideMatrixExcepti
 import navalwar.server.gameengine.exceptions.WarAlreadyFinishedException;
 import navalwar.server.gameengine.exceptions.WarAlreadyStartedException;
 import navalwar.server.gameengine.exceptions.WarDoesNotExistException;
+import navalwar.server.gameengine.exceptions.WarNotStartedException;
 import navalwar.server.gameengine.info.IWarInfo;
 import navalwar.server.gameengine.info.WarInfo;
 
@@ -235,6 +236,7 @@ public class NetworkRequest implements Runnable{
 		StringTokenizer armyIDTokenizer = new StringTokenizer(armyIDMsg);
 		warIDTokenizer.nextToken(":");
 		int warID = Integer.parseInt(warIDTokenizer.nextToken());
+		armyIDTokenizer.nextToken(":");
 		int armyID = Integer.parseInt(armyIDTokenizer.nextToken());
 		try {
 			game.startWar(warID);
@@ -254,8 +256,27 @@ public class NetworkRequest implements Runnable{
 			outToClient.writeBytes("Code:-101"+'n');
 			e.printStackTrace();
 		}
+		
+		getTurn(warID);
+		
 	}
 	
-
+	private void getTurn(int warID){
+		try {
+			game.getNextTurn(warID);
+			
+		} catch (WarDoesNotExistException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (WarAlreadyFinishedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (WarNotStartedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	
 
 }

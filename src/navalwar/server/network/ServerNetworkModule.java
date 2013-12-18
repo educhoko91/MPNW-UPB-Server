@@ -65,6 +65,8 @@ public class ServerNetworkModule implements IServerNetworkModule {
 	}
 
 	public void receiveConnections() throws IOException{
+		ServerSocket netEngineConnection = new ServerSocket();
+		
 		while(true){
 			Socket connectionSocket = ws.accept();
 			NetworkRequest newConnection = new NetworkRequest(connectionSocket,game);
