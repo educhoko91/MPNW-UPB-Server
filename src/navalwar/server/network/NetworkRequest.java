@@ -119,8 +119,9 @@ public class NetworkRequest implements Runnable{
 		//////////////////////////////////////////////////
 		if(warName.isEmpty()){
 			System.out.println("Nombre null en la partida, fallo al crear");
-			outToClient.writeBytes("CREATINGERROR"+'n');
-			outToClient.writeBytes("Code:-100"+'n');
+			outToClient.writeBytes("CREATINGERROR"+'\n');
+			outToClient.writeBytes("Code:-100"+'\n');
+			
 		}
 		else{
 			int warID = game.createWar(warName, warDesc);
@@ -128,7 +129,9 @@ public class NetworkRequest implements Runnable{
 			outToClient.writeBytes(WarIDMsg);
 			String response = ""+warID+'\n';
 			outToClient.writeBytes(response);
+			
 		}
+		
 	}
 
 	private void handleWarListMsg() throws IOException{
@@ -277,6 +280,13 @@ public class NetworkRequest implements Runnable{
 		}
 	}
 	
+	public void setBufferedReader(BufferedReader br){
+		this.br = br;
+	}
+	
+	public void setOutToClient(DataOutputStream ds){
+		outToClient = ds;
+	}
 	
 
 }
