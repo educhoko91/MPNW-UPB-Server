@@ -242,25 +242,34 @@ public class NetworkRequest implements Runnable{
 		armyIDTokenizer.nextToken(":");
 		int armyID = Integer.parseInt(armyIDTokenizer.nextToken());
 		try {
-			game.startWar(warID);
+			//corregido con el test de integracion:
+			if(game.getArmies(warID).size()<=1){
+				outToClient.writeBytes("STARTERROR"+'\n');
+				outToClient.writeBytes("Code:-101"+'\n');
+			}
+			else{
+				game.startWar(warID);
+				getTurn(warID);
+			}
+			
 		} catch (WarDoesNotExistException e) {
 			System.out.println("inicindo una guerra que no existe");
-			outToClient.writeBytes("STARTERROR"+'n');
-			outToClient.writeBytes("Code:-101"+'n');
+			outToClient.writeBytes("STARTERROR"+'\n');
+			outToClient.writeBytes("Code:-101"+'\n');
 			e.printStackTrace();
 		} catch (WarAlreadyStartedException e) {
 			System.out.println("la guerra ya ha sido iniciada");
-			outToClient.writeBytes("STARTERROR"+'n');
-			outToClient.writeBytes("Code:-101"+'n');
+			outToClient.writeBytes("STARTERROR"+'\n');
+			outToClient.writeBytes("Code:-101"+'\n');
 			e.printStackTrace();
 		} catch (WarAlreadyFinishedException e) {
 			System.out.println("la guerra ya ha terminado");
-			outToClient.writeBytes("STARTERROR"+'n');
-			outToClient.writeBytes("Code:-101"+'n');
+			outToClient.writeBytes("STARTERROR"+'\n');
+			outToClient.writeBytes("Code:-101"+'\n');
 			e.printStackTrace();
 		}
 		
-		getTurn(warID);
+		
 		
 	}
 	
