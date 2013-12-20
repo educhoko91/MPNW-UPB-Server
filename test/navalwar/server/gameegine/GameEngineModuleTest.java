@@ -31,7 +31,6 @@ public class GameEngineModuleTest {
 
 	@Before
 	public void setUp(){
-		warMock = EasyMock.createMock(War.class);
 		warInfoMock = EasyMock.createMock(WarInfo.class);
 		unitAndPlaceMock = EasyMock.createMock(UnitAndPlace.class);
 		unitAndPlaceMock2 = EasyMock.createMock(UnitAndPlace.class);
