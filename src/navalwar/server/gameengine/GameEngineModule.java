@@ -43,7 +43,7 @@ public class GameEngineModule implements IGameEngineModule {
 	// Constructors & singleton pattern
 	//--------------------------------------------
 
-	private GameEngineModule() {
+	public GameEngineModule() {
 		wars = new HashMap<Integer, War>();
 	}
 	
