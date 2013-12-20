@@ -59,7 +59,12 @@ public class War {
 	private class TurnTimeoutTimerTask extends TimerTask {
 		@Override
 		public void run() {
-			notifyTimeoutTurn();
+			try {
+				notifyTimeoutTurn();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -169,10 +174,10 @@ public class War {
 		netModule.turnArmy(warID, turn);
 	}
 	
-	public void notifyTimeoutTurn() {
-		timeoutTurn = true;
-		netModule.turnArmyTimeout(warID, turn);
-		chooseNextTurn();
+	public void notifyTimeoutTurn() throws InterruptedException {
+		//timeoutTurn = false;
+		//netModule.turnArmyTimeout(warID, turn);
+		//chooseNextTurn();
 	}
 	
 	public ShotCodes handleShot(int enemyID, int targetID, int row, int col) throws ArmyTurnTimeoutException, NotTurnOfArmyException, WarNotStartedException, WarAlreadyFinishedException {

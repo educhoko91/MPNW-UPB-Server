@@ -83,7 +83,7 @@ public class NetworkRequest implements Runnable{
 					handleShot();
 					break;
 				case "SurrenderMsg":
-					System.out.println("game.QuitArmy(armyID,warID)");
+					handleSurrender();
 					break;
 				case "ExitMsg":
 					System.out.println("game.ExitArmy(armyID,warID)");
@@ -329,11 +329,7 @@ public class NetworkRequest implements Runnable{
 		int y = Integer.parseInt(YTokenizer.nextToken());
 		try {
 			ShotCodes code = game.handleShot(warID, attackerID, attackedID, x, y);
-			outToClient.writeBytes("SHOOTMSG"+'\n');
-			outToClient.writeBytes("code:"+code+'\n');
-			outToClient.writeBytes("attackedID:"+attackedID+'\n');
-			outToClient.writeBytes("X:"+x+'\n');
-			outToClient.writeBytes("Y:"+y+'\n');
+			((GameEngineModule) game).net.broadcastShot(warID, attackerID, attackedID, x, y,code);
 			
 			
 		} catch (WarDoesNotExistException e) {
@@ -366,6 +362,10 @@ public class NetworkRequest implements Runnable{
 			outToClient.writeBytes("armyName:"+info.getName()+'\n');
 			
 		}
+	}
+	
+	private void handleSurrender(){
+		
 	}
 	
 	//Estos metodos sirven para los test

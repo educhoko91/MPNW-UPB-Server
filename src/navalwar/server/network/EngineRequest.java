@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import navalwar.server.gameengine.IGameEngineModule;
+import navalwar.server.gameengine.IGameEngineModule.ShotCodes;
 
 public class EngineRequest implements IServerNetworkModule{
 
@@ -61,8 +62,8 @@ public class EngineRequest implements IServerNetworkModule{
 	}
 
 	@Override
-	public int turnArmyTimeout(int warID, int armyID) {
-		// TODO Auto-generated method stub
+	public int turnArmyTimeout(int warID, int armyID) throws InterruptedException {
+		Thread.sleep(10000);
 		return 0;
 	}
 
@@ -108,6 +109,37 @@ public class EngineRequest implements IServerNetworkModule{
 
 			}
 		}
+	}
+
+
+
+	@Override
+	public void broadcastShot(int warID, int attackerID, int attackedID, int x, int y, ShotCodes code) {
+		List<Integer> armies = game.getArmies(warID);
+		ArmyWarEntry armywar = null;
+		for(Integer i : armies){
+			for(Entry<ArmyWarEntry, String> e : ServerNetworkModule.armyWarIpMap.entrySet()){
+				armywar = e.getKey();
+				if(armywar.getArmyID()==i && armywar.getWarID()==warID){
+					break;
+				}
+			}
+			String ip = ServerNetworkModule.armyWarIpMap.get(armywar);
+			Socket s = ServerNetworkModule.ipSocketMap.get(ip);
+			try {
+				DataOutputStream outToClient = new DataOutputStream(s.getOutputStream());
+				outToClient.writeBytes("SHOTMSG"+'\n');
+				outToClient.writeBytes("attackedID:"+attackedID+'\n');
+				outToClient.writeBytes("X:"+x+'\n');
+				outToClient.writeBytes("Y:"+y+'\n');
+				outToClient.writeBytes("code:"+code+'\n');
+				
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
 	}
 
 

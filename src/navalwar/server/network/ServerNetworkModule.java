@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import navalwar.server.gameengine.GameEngineModule;
 import navalwar.server.gameengine.IGameEngineModule;
+import navalwar.server.gameengine.IGameEngineModule.ShotCodes;
 import navalwar.server.gameengine.War;
 
 public class ServerNetworkModule implements IServerNetworkModule {
@@ -87,6 +88,13 @@ public class ServerNetworkModule implements IServerNetworkModule {
 
 	@Override
 	public void armyJoined(int warID, int armyID, String armyName) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void broadcastShot(int warID, int attackerID, int attackedID, int x,
+			int y,ShotCodes code) {
 		// TODO Auto-generated method stub
 		
 	}
