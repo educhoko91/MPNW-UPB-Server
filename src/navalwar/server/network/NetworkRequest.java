@@ -210,13 +210,19 @@ public class NetworkRequest implements Runnable{
 			outToClient.writeBytes("armyID:"+armyID+'\n');
 			
 		
-			//Este if se hizo con finalidades del test
+			/*
+			 * este if se realizo con finalidades del test, ya que al no existir una verdadera conexion 
+			 * el SocketMock no se comunicara con todos los clientes
+			 * ademas de ser parte de algo q no se busca probar aun; en un futuro si se aplicarian 
+			 * test sobre este
+			 */
 			if(!(s instanceof SocketMock)){
 				((GameEngineModule) game).net.armyJoined(warID,armyID,armyName);
 				ServerNetworkModule.putArmyWarIpMap(new ArmyWarEntry(warID, armyID), s.getInetAddress().getHostAddress());
+				updateEnemies(warID,armyID);
 			}
 			
-			updateEnemies(warID,armyID);
+			
 		} catch (WarDoesNotExistException e) {
 			outToClient.writeBytes("JOINERROR"+'n');
 			outToClient.writeBytes("Code:-103"+'n');
