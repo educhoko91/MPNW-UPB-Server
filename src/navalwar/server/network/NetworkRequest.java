@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import navalwar.server.gameengine.GameEngineModule;
 import navalwar.server.gameengine.IGameEngineModule;
 import navalwar.server.gameengine.UnitAndPlace;
 import navalwar.server.gameengine.exceptions.InvalidUnitNameException;
@@ -203,6 +204,7 @@ public class NetworkRequest implements Runnable{
 			armyID = game.regArmy(warID, armyName, units);
 			outToClient.writeBytes("ArmyIDMsg"+'\n');
 			outToClient.writeBytes("armyID:"+armyID+'\n');
+			ServerNetworkModule.putArmyWarIpMap(new ArmyWarEntry(warID, armyID), s.getInetAddress().getHostAddress());
 		} catch (WarDoesNotExistException e) {
 			outToClient.writeBytes("JOINERROR"+'n');
 			outToClient.writeBytes("Code:-103"+'n');
@@ -275,8 +277,8 @@ public class NetworkRequest implements Runnable{
 	
 	private void getTurn(int warID){
 		try {
-			game.getNextTurn(warID);
-			
+			int armyID = game.getNextTurn(warID);
+			((GameEngineModule) game).net.turnArmy(warID, armyID);
 		} catch (WarDoesNotExistException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
