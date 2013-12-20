@@ -59,6 +59,9 @@ public class NetworkRequestTest {
 		gameMock = PowerMock.createMock(GameEngineModule.class);
 	}
 	/*
+	 * Testing sobre los metodos del Network request en integracion con el gameEngine
+	 * especificamente testea el crear una guerra, unirse a ella y tratar de iniciarla
+	 * 
 	 * GrayBox test
 	 * integration test
 	 * 
@@ -92,6 +95,8 @@ public class NetworkRequestTest {
 		
 	}
 	/*
+	 * Test realizado con el fin de cubrir el metodo list (White Box)
+	 * test unitario
 	 * Test unitario que simula el correcto listado de las guerras en un servidor,
 	 * el oraculo espera que el test no lance excepciones
 	 */
@@ -130,6 +135,10 @@ public class NetworkRequestTest {
 		EasyMock.verify(infoMock);
 		PowerMock.verify(outToClientMock);
 	}
+	
+	/*
+	 * Test cuya finalidad es simular el acceso de 2 clientes al modulo red
+	 */
 	
 	@Test
 	public void TwoClientsTest() throws IOException, WarDoesNotExistException, WarAlreadyFinishedException, WarAlreadyStartedException, InvalidUnitNameException, PlaceNotFreeToPlaceUnitException, UnitCoordinatesOutsideMatrixException{
