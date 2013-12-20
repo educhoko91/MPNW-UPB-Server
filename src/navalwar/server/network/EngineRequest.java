@@ -78,7 +78,37 @@ public class EngineRequest implements IServerNetworkModule{
 		return 0;
 	}
 
+	@Override
+	public void armyJoined(int warID,int armyID,String armyName){
+		List<Integer> armies = game.getArmies(warID);
+		ArmyWarEntry armywar = null;
+		for(Integer i : armies){
+			if(i==armyID)
+				continue;
+			for(Entry<ArmyWarEntry, String> e : ServerNetworkModule.armyWarIpMap.entrySet()){
+				armywar = e.getKey();
+				if(armywar.getArmyID()==i && armywar.getWarID()==warID){
+					break;
+				}
+			}
+			if(armywar!=null){
+				String ip = ServerNetworkModule.armyWarIpMap.get(armywar);
+				Socket s = ServerNetworkModule.ipSocketMap.get(ip);
+				
+				try {
+					DataOutputStream outToClient = new DataOutputStream(s.getOutputStream());
+					outToClient.writeBytes("NewEnemyMsg"+'\n');
+					outToClient.writeBytes("armyID:"+armyID+'\n');
+					outToClient.writeBytes("armyName:"+armyName+'\n');
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				
 
+			}
+		}
+	}
 
 
 

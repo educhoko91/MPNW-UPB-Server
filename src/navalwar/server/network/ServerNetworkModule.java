@@ -85,5 +85,11 @@ public class ServerNetworkModule implements IServerNetworkModule {
 		}
 	}
 
+	@Override
+	public void armyJoined(int warID, int armyID, String armyName) {
+		// TODO Auto-generated method stub
+		
+	}
+
 
 }

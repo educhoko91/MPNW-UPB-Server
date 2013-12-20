@@ -83,5 +83,7 @@ public class BufferedReaderMock extends BufferedReader {
 		this.game=game;
 	}
 	
-	
+	public int getwarID(){
+		return warID;
+	}
 }

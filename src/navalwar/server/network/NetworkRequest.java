@@ -12,14 +12,18 @@ import java.util.StringTokenizer;
 
 import navalwar.server.gameengine.GameEngineModule;
 import navalwar.server.gameengine.IGameEngineModule;
+import navalwar.server.gameengine.IGameEngineModule.ShotCodes;
 import navalwar.server.gameengine.UnitAndPlace;
+import navalwar.server.gameengine.exceptions.ArmyTurnTimeoutException;
 import navalwar.server.gameengine.exceptions.InvalidUnitNameException;
+import navalwar.server.gameengine.exceptions.NotTurnOfArmyException;
 import navalwar.server.gameengine.exceptions.PlaceNotFreeToPlaceUnitException;
 import navalwar.server.gameengine.exceptions.UnitCoordinatesOutsideMatrixException;
 import navalwar.server.gameengine.exceptions.WarAlreadyFinishedException;
 import navalwar.server.gameengine.exceptions.WarAlreadyStartedException;
 import navalwar.server.gameengine.exceptions.WarDoesNotExistException;
 import navalwar.server.gameengine.exceptions.WarNotStartedException;
+import navalwar.server.gameengine.info.ArmyInfo;
 import navalwar.server.gameengine.info.IWarInfo;
 import navalwar.server.gameengine.info.WarInfo;
 
@@ -76,7 +80,7 @@ public class NetworkRequest implements Runnable{
 					handleStart();
 					break;
 				case "MovementMsg":
-					System.out.println("game.handleShot()");
+					handleShot();
 					break;
 				case "SurrenderMsg":
 					System.out.println("game.QuitArmy(armyID,warID)");
@@ -171,10 +175,10 @@ public class NetworkRequest implements Runnable{
 		String armyName = armyNameTokenizer.nextToken();
 		SizeTokenizer.nextToken(":");
 		//////////////////////////////////////////////////////
-		System.out.println("WarID: "+warID);
-		System.out.println("War: "+ game.getWarInfo(warID).getName());
-		System.out.println("ArmyName: "+ armyName);
-		System.out.println("Units:");
+		//System.out.println("WarID: "+warID);
+		//System.out.println("War: "+ game.getWarInfo(warID).getName());
+		//System.out.println("ArmyName: "+ armyName);
+		//System.out.println("Units:");
 		//////////////////////////////////////////////////////
 		int size = Integer.parseInt(SizeTokenizer.nextToken());
 		for(int i=0 ; i<size ;i++){
@@ -204,7 +208,15 @@ public class NetworkRequest implements Runnable{
 			armyID = game.regArmy(warID, armyName, units);
 			outToClient.writeBytes("ArmyIDMsg"+'\n');
 			outToClient.writeBytes("armyID:"+armyID+'\n');
-			ServerNetworkModule.putArmyWarIpMap(new ArmyWarEntry(warID, armyID), s.getInetAddress().getHostAddress());
+			
+		
+			//Este if se hizo con finalidades del test
+			if(!(s instanceof SocketMock)){
+				((GameEngineModule) game).net.armyJoined(warID,armyID,armyName);
+				ServerNetworkModule.putArmyWarIpMap(new ArmyWarEntry(warID, armyID), s.getInetAddress().getHostAddress());
+			}
+			
+			updateEnemies(warID,armyID);
 		} catch (WarDoesNotExistException e) {
 			outToClient.writeBytes("JOINERROR"+'n');
 			outToClient.writeBytes("Code:-103"+'n');
@@ -230,6 +242,8 @@ public class NetworkRequest implements Runnable{
 			outToClient.writeBytes("Code:-103"+'n');
 			//e.printStackTrace();
 		}
+		
+		
 		
 	}
 	
@@ -258,17 +272,17 @@ public class NetworkRequest implements Runnable{
 			System.out.println("inicindo una guerra que no existe");
 			outToClient.writeBytes("STARTERROR"+'\n');
 			outToClient.writeBytes("Code:-101"+'\n');
-			e.printStackTrace();
+		
 		} catch (WarAlreadyStartedException e) {
 			System.out.println("la guerra ya ha sido iniciada");
 			outToClient.writeBytes("STARTERROR"+'\n');
 			outToClient.writeBytes("Code:-101"+'\n');
-			e.printStackTrace();
+			
 		} catch (WarAlreadyFinishedException e) {
 			System.out.println("la guerra ya ha terminado");
 			outToClient.writeBytes("STARTERROR"+'\n');
 			outToClient.writeBytes("Code:-101"+'\n');
-			e.printStackTrace();
+			
 		}
 		
 		
@@ -291,6 +305,70 @@ public class NetworkRequest implements Runnable{
 		}
 	}
 	
+	private void handleShot() throws IOException{
+		String warIDMSg,attackerIDMsg,attackedIDMsg,XMsg,YMsg;
+		warIDMSg = br.readLine();
+		attackerIDMsg = br.readLine();
+		attackedIDMsg = br.readLine();
+		XMsg = br.readLine();
+		YMsg = br.readLine();
+		StringTokenizer warIDTokenizer = new StringTokenizer(warIDMSg);
+		StringTokenizer attackerIDTokenizer = new StringTokenizer(attackerIDMsg);
+		StringTokenizer attackedIDTokenizer = new StringTokenizer(attackedIDMsg);
+		StringTokenizer XTokenizer = new StringTokenizer(XMsg);
+		StringTokenizer YTokenizer = new StringTokenizer(YMsg);
+		warIDTokenizer.nextToken(":");
+		attackerIDTokenizer.nextToken(":");
+		attackedIDTokenizer.nextToken(":");
+		XTokenizer.nextToken(":");
+		YTokenizer.nextToken(":");
+		int warID = Integer.parseInt(warIDTokenizer.nextToken());
+		int attackerID = Integer.parseInt(attackerIDTokenizer.nextToken());
+		int attackedID = Integer.parseInt(attackedIDTokenizer.nextToken());
+		int x = Integer.parseInt(XTokenizer.nextToken());
+		int y = Integer.parseInt(YTokenizer.nextToken());
+		try {
+			ShotCodes code = game.handleShot(warID, attackerID, attackedID, x, y);
+			outToClient.writeBytes("SHOOTMSG"+'\n');
+			outToClient.writeBytes("code:"+code+'\n');
+			outToClient.writeBytes("attackedID:"+attackedID+'\n');
+			outToClient.writeBytes("X:"+x+'\n');
+			outToClient.writeBytes("Y:"+y+'\n');
+			
+			
+		} catch (WarDoesNotExistException e) {
+			outToClient.writeBytes("ERRORSHOT"+'\n');
+			outToClient.writeBytes("Code:-106"+'\n');
+		} catch (ArmyTurnTimeoutException e) {
+			outToClient.writeBytes("ERRORSHOT"+'\n');
+			outToClient.writeBytes("Code:-106"+'\n');
+		} catch (NotTurnOfArmyException e) {
+			outToClient.writeBytes("ERRORSHOT"+'\n');
+			outToClient.writeBytes("Code:-106"+'\n');
+		} catch (WarNotStartedException e) {
+			outToClient.writeBytes("ERRORSHOT"+'\n');
+			outToClient.writeBytes("Code:-106"+'\n');
+		} catch (WarAlreadyFinishedException e) {
+			outToClient.writeBytes("ERRORSHOT"+'\n');
+			outToClient.writeBytes("Code:-106"+'\n');
+		}
+	}
+	
+	private void updateEnemies(int warID, int armyID) throws IOException{
+		List<Integer> enemies = game.getArmies(warID);
+		outToClient.writeBytes("EnemyListMsg"+'\n');
+		outToClient.writeBytes(""+(enemies.size()-1)+'\n');
+		for(Integer i : enemies){
+			if(i==armyID)
+				continue;
+			ArmyInfo info = (ArmyInfo) game.getArmyInfo(warID, i);
+			outToClient.writeBytes("armyID:"+info.getArmyID()+'\n');
+			outToClient.writeBytes("armyName:"+info.getName()+'\n');
+			
+		}
+	}
+	
+	//Estos metodos sirven para los test
 	public void setBufferedReader(BufferedReader br){
 		this.br = br;
 	}
@@ -298,6 +376,9 @@ public class NetworkRequest implements Runnable{
 	public void setOutToClient(DataOutputStream ds){
 		outToClient = ds;
 	}
-	
+
+	public void setGameEngine(IGameEngineModule game){
+		this.game = game;
+	}
 
 }

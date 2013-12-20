@@ -126,7 +126,7 @@ public class GameEngineModule implements IGameEngineModule {
 		// construct and return army info
 		ArmyInfo ai = new ArmyInfo(army);
 		
-		return null;
+		return ai;
 	}
 
 	public synchronized void startWar(int warID) throws WarDoesNotExistException, WarAlreadyStartedException, WarAlreadyFinishedException {
