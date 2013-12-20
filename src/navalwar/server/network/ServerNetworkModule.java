@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import navalwar.server.gameengine.GameEngineModule;
 import navalwar.server.gameengine.IGameEngineModule;
@@ -14,6 +15,12 @@ public class ServerNetworkModule implements IServerNetworkModule {
 	
 	IGameEngineModule game = null;
 	ServerSocket ws;
+	public static ConcurrentHashMap<String, Socket>ipSocketMap= new ConcurrentHashMap<String,Socket>();
+	public static ConcurrentHashMap<ArmyWarEntry, String>armyWarIpMap= new ConcurrentHashMap<ArmyWarEntry,String>();
+	
+	public static void putArmyWarIpMap(ArmyWarEntry entry, String ip){
+		armyWarIpMap.put(entry, ip);
+	}
 	
 	//--------------------------------------------
 	// Constructors & singleton pattern
@@ -65,14 +72,23 @@ public class ServerNetworkModule implements IServerNetworkModule {
 	}
 
 	public void receiveConnections() throws IOException{
-		ServerSocket netEngineConnection = new ServerSocket();
+		EngineRequest engineNet = new EngineRequest(game);
+		game.bindNetModule(engineNet);
 		
 		while(true){
 			Socket connectionSocket = ws.accept();
+			ipSocketMap.put(connectionSocket.getInetAddress().getHostAddress(), connectionSocket);
+			System.out.println(connectionSocket.getInetAddress().getHostAddress());
 			NetworkRequest newConnection = new NetworkRequest(connectionSocket,game);
 			Thread thread = new Thread(newConnection);
 			thread.start();
 		}
+	}
+
+	@Override
+	public void armyJoined(int warID, int armyID, String armyName) {
+		// TODO Auto-generated method stub
+		
 	}
 
 

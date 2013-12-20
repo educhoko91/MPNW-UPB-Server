@@ -20,5 +20,6 @@ public interface IServerNetworkModule {
 	public int turnArmyTimeout(int warID, int armyID);
 	public int armyKicked(int warID, int armyID);
 	public int endWar(int warID, int winnerArmyID);
+	public void armyJoined(int warID, int armyID, String armyName);
 	
 }

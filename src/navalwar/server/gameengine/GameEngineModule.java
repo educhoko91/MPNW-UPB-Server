@@ -31,7 +31,7 @@ public class GameEngineModule implements IGameEngineModule {
 	
 	private static final int MAX_WAR_ID = 1000;
 	
-	IServerNetworkModule net = null;
+	public IServerNetworkModule net = null;
 
 	private Map<Integer, War> wars;
 
@@ -126,7 +126,7 @@ public class GameEngineModule implements IGameEngineModule {
 		// construct and return army info
 		ArmyInfo ai = new ArmyInfo(army);
 		
-		return null;
+		return ai;
 	}
 
 	public synchronized void startWar(int warID) throws WarDoesNotExistException, WarAlreadyStartedException, WarAlreadyFinishedException {
