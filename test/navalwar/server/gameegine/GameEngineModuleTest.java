@@ -16,26 +16,25 @@ import navalwar.server.gameengine.exceptions.WarAlreadyFinishedException;
 import navalwar.server.gameengine.exceptions.WarAlreadyStartedException;
 import navalwar.server.gameengine.exceptions.WarDoesNotExistException;
 import navalwar.server.gameengine.info.WarInfo;
-import navalwar.server.network.IServerNetworkModule;
 
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 
-import sun.org.mozilla.javascript.internal.ast.NewExpression;
+
 
 public class GameEngineModuleTest {
 	
 	private WarInfo warInfoMock;
-	private War warMock;
 	private UnitAndPlace unitAndPlaceMock;
-	private List<UnitAndPlace> units;
+	private UnitAndPlace unitAndPlaceMock2;
 
 	@Before
 	public void setUp(){
 		warMock = EasyMock.createMock(War.class);
 		warInfoMock = EasyMock.createMock(WarInfo.class);
 		unitAndPlaceMock = EasyMock.createMock(UnitAndPlace.class);
+		unitAndPlaceMock2 = EasyMock.createMock(UnitAndPlace.class);
 	}
 	
 	
@@ -58,13 +57,12 @@ public class GameEngineModuleTest {
 		assertEquals(true, result);
 	}
 	
-	
 	/**
 	Test para verificar que la funcion getWarInfo() devolvera los valores
-	indicados al ejecutarla, mediante un paramatro previamente generado por
+	indicados al ejecutarla, mediante un parametro previamente generado por
 	createWar().
 	
-	Encontrado error: el metodo createWar() acepta solicitudes cuyos parametros
+	--Encontrado error: el metodo createWar() acepta solicitudes cuyos parametros
 	son vacios. Aunque en la red y el cliente se bloquean dichas solicitudes,
 	la funcion createWar() no es suficientemente robusta.
 	V0.05
@@ -86,10 +84,10 @@ public class GameEngineModuleTest {
 	
 	/**
 	Test para verificar que la funcion regArmy() registrara de forma adecuada al
-	ejercito en una guerra existente guerra.
+	ejercito en una guerra existente.
 	
-	Error encontrado: el metodo regArmy() puede tener un nombre vacio o nulo.
-	Error encontrado: el metodo regArmy() permite registrar a un ejercito cuya
+	--Error encontrado: el metodo regArmy() puede aceptar un nombre vacio o nulo.
+	--Error encontrado: el metodo regArmy() permite registrar a un ejercito cuya
 	lista de unidades este vacia.
 	V0.05
 	**/
@@ -101,19 +99,15 @@ public class GameEngineModuleTest {
 		String warDesc = "desc";
 		int warID = game.createWar(warName, warDesc);
 		String armyName = null;
-		//UnitAndPlace unit1 = new UnitAndPlace("Soldier", 5, 5);
-		//UnitAndPlace unit2 = new UnitAndPlace("Soldier", 9, 9);
-		//UnitAndPlace unit3 = new UnitAndPlace("Soldier", 6, 6);
-		//UnitAndPlace unit4 = new UnitAndPlace("Soldier", 7, 7);
-		//UnitAndPlace unit5 = new UnitAndPlace("Soldier", 8, 8);
-		//UnitAndPlace unit6 = new UnitAndPlace("Soldier", 1, 1);
+		String unitName = "Tank";
+		int x = 1;
+		int y = 1;
+		EasyMock.expect(unitAndPlaceMock.getUnitName()).andReturn(unitName);
+		EasyMock.expect(unitAndPlaceMock.getRow()).andReturn(x);
+		EasyMock.expect(unitAndPlaceMock.getCol()).andReturn(y);
+		EasyMock.replay(unitAndPlaceMock);
 		List<UnitAndPlace> list = new ArrayList<>();
-		//list.add(unit1);
-		//list.add(unit2);
-		//list.add(unit3);
-		//list.add(unit4);
-		//list.add(unit5);
-		//list.add(unit6);
+		list.add(unitAndPlaceMock);
 		try {
 			game.regArmy(warID, armyName, list);
 		} catch (WarDoesNotExistException e) {
@@ -135,8 +129,78 @@ public class GameEngineModuleTest {
 			System.out.println(e);
 			e.printStackTrace();
 		}
-		//game.regArmy(warID, "", );
+		EasyMock.reset(unitAndPlaceMock);
+	}
+	
+	/**
+	Test para verificar que la funcion startWar() iniciara la guerra de forma adecuada
+	
+	--Error encontrado: el metodo startWar() no pide en ningun momento un parametro el cual
+	identificara al creador de la guerra, lo cual significa que la guerra podra ser iniciada
+	por cualquier jugador que se haya registrado en la misma. Solo el jugador que creo la 
+	guerra es el unico que debería iniciarla.
+	--Error encontrado: el metodo startWar() puede iniciar el juego con solo un jugador registrado
+	V0.07
+	**/
+	
+	@Test
+	public void testStartWar(){
+		GameEngineModule game = new GameEngineModule();
+		int warID = game.createWar("WarExample", "DescExample");
+		EasyMock.expect(unitAndPlaceMock.getUnitName()).andReturn("Plane");
+		EasyMock.expect(unitAndPlaceMock.getRow()).andReturn(2);
+		EasyMock.expect(unitAndPlaceMock.getCol()).andReturn(3);
+		EasyMock.replay(unitAndPlaceMock);
+		List<UnitAndPlace> list = new ArrayList<>();
+		list.add(unitAndPlaceMock);
+		try {
+			game.regArmy(warID, "ArmyExample", list);
+		} catch (WarDoesNotExistException e) {
+			e.printStackTrace();
+		} catch (WarAlreadyFinishedException e) {
+			e.printStackTrace();
+		} catch (WarAlreadyStartedException e) {
+			e.printStackTrace();
+		} catch (InvalidUnitNameException e) {
+			e.printStackTrace();
+		} catch (PlaceNotFreeToPlaceUnitException e) {
+			e.printStackTrace();
+		} catch (UnitCoordinatesOutsideMatrixException e) {
+			e.printStackTrace();
+		}
 		
+		EasyMock.expect(unitAndPlaceMock2.getUnitName()).andReturn("Tank");
+		EasyMock.expect(unitAndPlaceMock2.getRow()).andReturn(4);
+		EasyMock.expect(unitAndPlaceMock2.getCol()).andReturn(5);
+		EasyMock.replay(unitAndPlaceMock2);
+		List<UnitAndPlace> list2 = new ArrayList<>();
+		list2.add(unitAndPlaceMock2);
+		
+		try {
+			game.regArmy(warID, "ArmyExample2", list2);
+		} catch (WarDoesNotExistException e) {
+			e.printStackTrace();
+		} catch (WarAlreadyFinishedException e) {
+			e.printStackTrace();
+		} catch (WarAlreadyStartedException e) {
+			e.printStackTrace();
+		} catch (InvalidUnitNameException e) {
+			e.printStackTrace();
+		} catch (PlaceNotFreeToPlaceUnitException e) {
+			e.printStackTrace();
+		} catch (UnitCoordinatesOutsideMatrixException e) {
+			e.printStackTrace();
+		}
+		
+		try {
+			game.startWar(warID);
+		} catch (WarDoesNotExistException e) {
+			e.printStackTrace();
+		} catch (WarAlreadyStartedException e) {
+			e.printStackTrace();
+		} catch (WarAlreadyFinishedException e) {
+			e.printStackTrace();
+		}
 	}
 
 }
